@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Operations Version="1.0" xmlns="http://schemas.microsoft.com/sqlserver/dac/Serialization/2012/02">
+  <Operation Name="Rename Refactor" Key="86c48b94-56ab-491b-93a9-bcef90b33ebe" ChangeDateTime="01/05/2018 06:32:58">
+    <Property Name="ElementName" Value="[dbo].[SMS_RoleInfo]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="ParentElementName" Value="[dbo]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[RoleInfo]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="aea79af7-633a-4576-855f-e6af358efa85" ChangeDateTime="01/05/2018 06:33:04">
+    <Property Name="ElementName" Value="[dbo].[SMS_UserInfo]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="ParentElementName" Value="[dbo]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[UserInfo]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="36abe3ae-8152-4e3b-ac5d-6d3fd177feb1" ChangeDateTime="01/05/2018 06:33:09">
+    <Property Name="ElementName" Value="[dbo].[SMS_UserMessage]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="ParentElementName" Value="[dbo]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[UserMessage]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="4d727c20-2e40-4337-90f4-c47c766f6780" ChangeDateTime="01/05/2018 06:33:14">
+    <Property Name="ElementName" Value="[dbo].[SMS_UserPreference]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="ParentElementName" Value="[dbo]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[UserPreference]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="cbcd0908-6c8a-4eb0-a74a-509264248a0c" ChangeDateTime="01/05/2018 06:33:18">
+    <Property Name="ElementName" Value="[dbo].[SMS_UserRole]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="ParentElementName" Value="[dbo]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[UserRole]" />
+  </Operation>
+  <Operation Name="Rename Refactor" Key="0655e808-e0d3-4d71-86d8-b0849d98d137" ChangeDateTime="01/05/2018 06:33:25">
+    <Property Name="ElementName" Value="[dbo].[SMS_UserSignInRecord]" />
+    <Property Name="ElementType" Value="SqlTable" />
+    <Property Name="ParentElementName" Value="[dbo]" />
+    <Property Name="ParentElementType" Value="SqlSchema" />
+    <Property Name="NewName" Value="[UserSignInRecord]" />
+  </Operation>
+</Operations>

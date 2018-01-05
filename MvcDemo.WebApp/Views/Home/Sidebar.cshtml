@@ -1,0 +1,53 @@
+﻿@model IList<Orion.Mvc.UI.MenuItem>
+
+@*
+
+    <div id="MenuFilter" class="input-group input-group-sm">
+        <span class="input-group-addon"><i class="fa fa-search fa-flip-horizontal fa-lg"></i></span>
+        <input type="text" class="form-control" placeholder="尋找" />
+    </div>
+*@
+
+<ul id="MenuList" class="sidebar-list">
+	@foreach (var item in Model)
+	{
+		<li class="sidebar-dropdown @(item.IsActive ? "open" : "")">
+			@if (item.HasUrl && !item.HasSubItems)
+			{
+				<a class="sidebar-item" href="@Url.Content(item.Url)" target="@item.Target" tabindex="-1">
+					<i class="fa fa-fw @(item.Icon ?? "fa-certificate")"></i>@item.Name
+				</a>
+			}
+			else
+			{
+				<span class="sidebar-item @(item.HasSubItems ? "has-sub" : "")">
+					<i class="fa fa-fw @(item.Icon ?? "fa-certificate")"></i>
+					@if (item.HasUrl)
+					{
+						<a href="@Url.Content(item.Url)" target="@item.Target" tabindex="-1">@item.Name</a>
+					}
+					else
+					{
+						@item.Name
+					}
+				</span>
+			}
+
+
+			@if (item.HasSubItems)
+			{
+				<ul class="list-unstyled sidebar-sub-list">
+					@foreach (var sub in item.SubItems)
+					{
+						<li class="@(sub.IsActive ? "active" : "")">
+							<a class="sidebar-item" href="@Url.Content(sub.Url)" target="@sub.Target" tabindex="-1">
+								<i class="fa fa-fw @(sub.Icon ?? "fa-angle-double-right")"></i>@sub.Name
+							</a>
+						</li>
+					}
+				</ul>
+			}
+		</li>
+	}
+</ul>
+

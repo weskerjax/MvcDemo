@@ -1,0 +1,50 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<ordesignerObjectsDiagram dslVersion="1.0.0.0" absoluteBounds="0, 0, 12.625, 8.5" name="Sms">
+  <DataContextMoniker Name="/SmsDataContext" />
+  <nestedChildShapes>
+    <classShape Id="0b5a880a-5f10-495d-a6dc-c8c228f471de" absoluteBounds="0.5, 0.5, 2, 2.3683496093749996">
+      <DataClassMoniker Name="/SmsDataContext/RoleInfo" />
+      <nestedChildShapes>
+        <elementListCompartment Id="a42d48b3-8a5a-4b30-b1c1-eb35f6dd15ac" absoluteBounds="0.51499999999999968, 0.96, 1.9700000000000002, 1.808349609375" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="6461f662-a63d-4956-8cdc-f7215d2a2d72" absoluteBounds="8, 0.5, 2, 2.0164615885416666">
+      <DataClassMoniker Name="/SmsDataContext/UserSignInRecord" />
+      <nestedChildShapes>
+        <elementListCompartment Id="ea62f990-c9bc-46f6-9439-9aaabec4e495" absoluteBounds="8.015, 0.96, 1.9700000000000002, 1.4564615885416665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="8947c357-13ee-40c6-8208-3ca8373cf542" absoluteBounds="5.375, 0.5, 2, 3.5999576822916666">
+      <DataClassMoniker Name="/SmsDataContext/UserInfo" />
+      <nestedChildShapes>
+        <elementListCompartment Id="71519c0a-18e0-4fcc-bb9b-f23c6c38f400" absoluteBounds="5.3900000000000006, 0.96, 1.9700000000000002, 3.0399576822916665" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <classShape Id="830c7bbc-16d2-49f7-9065-fbd3ecdf57d7" absoluteBounds="2.875, 0.5, 2, 1.8405175781249998">
+      <DataClassMoniker Name="/SmsDataContext/UserRole" />
+      <nestedChildShapes>
+        <elementListCompartment Id="8b8b3037-ea9e-45d0-911f-89c278fded42" absoluteBounds="2.8900000000000006, 0.96, 1.9700000000000002, 1.280517578125" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+    <associationConnector edgePoints="[(2.5 : 1.4202587890625); (2.875 : 1.4202587890625)]" fixedFrom="Algorithm" fixedTo="Algorithm">
+      <AssociationMoniker Name="/SmsDataContext/RoleInfo/RoleInfo_UserRole" />
+      <nodes>
+        <classShapeMoniker Id="0b5a880a-5f10-495d-a6dc-c8c228f471de" />
+        <classShapeMoniker Id="830c7bbc-16d2-49f7-9065-fbd3ecdf57d7" />
+      </nodes>
+    </associationConnector>
+    <associationConnector edgePoints="[(5.375 : 1.4202587890625); (4.875 : 1.4202587890625)]" fixedFrom="NotFixed" fixedTo="NotFixed">
+      <AssociationMoniker Name="/SmsDataContext/UserInfo/UserInfo_UserRole" />
+      <nodes>
+        <classShapeMoniker Id="8947c357-13ee-40c6-8208-3ca8373cf542" />
+        <classShapeMoniker Id="830c7bbc-16d2-49f7-9065-fbd3ecdf57d7" />
+      </nodes>
+    </associationConnector>
+    <classShape Id="ed4ad228-9edf-443d-8947-9c89f149f983" absoluteBounds="10.375, 0.5, 2, 1.6645735677083331">
+      <DataClassMoniker Name="/SmsDataContext/UserPreference" />
+      <nestedChildShapes>
+        <elementListCompartment Id="cf29ef49-e0bb-44d1-9c0a-1e9df94e5d46" absoluteBounds="10.39, 0.96, 1.9700000000000002, 1.1045735677083333" name="DataPropertiesCompartment" titleTextColor="Black" itemTextColor="Black" />
+      </nestedChildShapes>
+    </classShape>
+  </nestedChildShapes>
+</ordesignerObjectsDiagram>

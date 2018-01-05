@@ -1,0 +1,14 @@
+﻿
+<div id="output"></div>
+
+<script type="text/javascript">
+    jQuery(function ($) {
+		$(document).on('barcodein', function (e, barcode) {
+			$('#output').html(e.barcode + '   ' + barcode);
+		});		 
+    });
+
+</script>
+
+
+

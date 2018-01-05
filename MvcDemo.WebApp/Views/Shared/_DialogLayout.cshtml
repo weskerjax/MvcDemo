@@ -1,0 +1,32 @@
+﻿<!DOCTYPE html>
+@{
+    Bundles.Reference("Styles/Bundles", "global");
+    Bundles.Reference("Scripts/Bundles", "global");
+}
+<html>
+<head>
+    @Html.Partial("_HeadMeta")
+
+    <title>@ViewBag.Title</title>
+
+    @Bundles.RenderStylesheets("global")
+    @Bundles.RenderStylesheets()
+    @RenderSection("Styles", required: false)
+
+    @Bundles.RenderScripts("global")
+    @Bundles.RenderScripts()
+</head>
+<body id="DialogLayout">
+
+    @Html.Partial("_StatusMsg")
+
+    <div>@RenderBody()</div>
+
+    @RenderSection("Scripts", required: false)
+
+    @if (TempData.ContainsKey("StatusSuccess"))
+    {
+        <script type="text/javascript">Dialog.trigger('change');</script>
+    }
+</body>
+</html>

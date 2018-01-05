@@ -1,0 +1,15 @@
+﻿@model Int32
+@{
+	var pageSizeItems = new string[] { "20", "30", "50", "100" };
+}
+
+@Html.Hidden("orderField")
+@Html.Hidden("descending")
+
+
+<div class="toolbar-right form-inline hidden-xs hidden-sm">
+	<span class="form-label form-label-sm">共<b>@Model</b>筆</span>
+	<span title="每頁顯示筆數" ext-change-submit="">
+		@Html.BsDropDownList("pageSize", pageSizeItems, new { @class = "input-sm", style = "width: 70px" })
+	</span>
+</div>

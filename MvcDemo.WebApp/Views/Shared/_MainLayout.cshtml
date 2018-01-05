@@ -1,0 +1,61 @@
+﻿<!DOCTYPE html>
+@{
+	Bundles.Reference("Styles/Bundles", "global");
+	Bundles.Reference("Scripts/Bundles", "global");
+
+	Bundles.Reference("~/Scripts/pages/main-layout.js");
+
+	string applicationTitle = System.Web.Configuration.WebConfigurationManager.AppSettings["applicationTitle"];
+
+
+	HttpCookie sidebarFlag = Request.Cookies["sidebar_menu_hide"];
+	string menuToggle = (sidebarFlag != null && sidebarFlag.Value == "true" ? "menu-toggle" : "init");
+
+}
+<html>
+<head>
+    @Html.Partial("_HeadMeta")
+
+	<title>@ViewBag.Title | @applicationTitle</title>
+
+	@Bundles.RenderStylesheets("global")
+    @Bundles.RenderStylesheets()
+    @RenderSection("Styles", required: false)
+
+	@Bundles.RenderScripts("global")
+    @Bundles.RenderScripts()
+</head>
+<body id="MainLayout" class="init">
+
+    @Html.Partial("_StatusMsg")
+
+    <div id="NavbarWrapper" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
+        <div class="navbar-header">
+        	<span id="MenuToggle" class="navbar-toggle menu-toggle"><i class="fa fa-bars fa-lg"></i></span>
+            <a id="Logo" class="navbar-brand" href="~/">Orion</a>
+
+            <span class="navbar-toggle collapsed" data-toggle="collapse" data-target="#NavbarCollapse">
+                <i class="fa fa-bars"></i>
+            </span>
+        </div>
+        <div id="NavbarCollapse" class="collapse navbar-collapse">
+            @{Html.RenderAction("Navbar", "Home");}
+        </div>
+    </div>
+
+
+
+
+    <div id="MenuWrapper" class="sidebar">
+        <div id="MenuContent">@{Html.RenderAction("Sidebar", "Home");}</div>
+    </div>
+
+    @{ Html.RenderAction("Breadcrumb", "Home"); }
+
+    <div id="ContainerWrapper" class="clearfix">
+        @RenderBody()
+    </div>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

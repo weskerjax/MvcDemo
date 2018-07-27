@@ -60,6 +60,12 @@ $.fn.dump = function () {
 	return this;
 };
 
+Array.prototype.dump = function () {
+	$.log(this);
+	return this;
+};
+
+
 
 $.fn.serializeObject = function(){
 	var o = {};
@@ -179,6 +185,22 @@ jQuery(function ($) {
 		$menu.css('max-height', height);
 		$menu.scroll(function (e) { e.stopPropagation(); });
 	});
+	
+	
+	/**=(權限替換)===============================================*/
+	$(document).on('content-change init-deny', function () {
+		$('[ext-deny]').each(function () {
+			var $this = $(this);
+
+			$this.replaceWith($('<span>', {
+				'class': $this.attr('class') + ' disabled',
+				'title': $this.attr('title') ? $this.attr('title') + '-權限不足' : '權限不足',
+				'html': $this.html(),
+			}));
+		});
+	}).triggerHandler('init-deny');
+	
+	
 
 
 	/**=(表單改變時自動送出)===============================================*/
@@ -195,8 +217,10 @@ jQuery(function ($) {
 		document.location = $this.attr('ext-change-to-page') + $this.val();
 		return false;
 	});
-	
-	
+
+
+
+
 	/**=(點擊後送出指定表單)===============================================*/
 	$('[ext-submit-form]').click(function () {
 		$($(this).attr('ext-submit-form')).submit();
@@ -238,24 +262,35 @@ jQuery(function ($) {
 	/**=(選擇全部)===============================================*/
 	$('[ext-select-all]').each(function () {
 		var $this = $(this);
+		var targetExpr = $this.attr('ext-select-all');
 		
-		$this.on('change.select-all',function(){
-			var $targets = $($this.attr('ext-select-all')).filter(':enabled');
-			$this.css('opacity', 1);
-			$targets.prop('checked', $this.prop('checked')).trigger('change');
+		$this.on('change.select-all', function () {
+			var checked = $this.prop('checked');
+			$this.prop('indeterminate', false);
+
+			$(targetExpr).filter(':enabled').prop('checked', checked).trigger('change', ['select-all']);
 		});
 		
-		$($this.attr('ext-select-all')).on('change.select-all', function () {
-			var $targets = $($this.attr('ext-select-all'));
-			var $checked = $targets.filter(':checked');
-			if($checked.length !== $targets.length && $checked.length > 0){
-				$this.css('opacity', 0.7);
-			}else{
-				$this.css('opacity', 1);
-			}
-			$this.prop('checked', $checked.length > 0);
-		}).trigger('change.select-all');	
+
+		var delayId = 0;
+		$(document).on('change.select-all', targetExpr, function (e, flag) {
+			if (flag == 'select-all') { return; }
+			if (delayId) { return; }
+
+			delayId = setTimeout(function () {
+				var $targets = $(targetExpr);
+				var $checked = $targets.filter(':checked');
+
+				$this.prop('indeterminate', $checked.length > 0 && $checked.length !== $targets.length);
+				$this.prop('checked', $checked.length > 0);
+
+				delayId = 0;
+			}, 100);
+		})
+
+		$(targetExpr).eq(0).trigger('change.select-all');
 	});
+
 
 	
 
@@ -321,7 +356,7 @@ jQuery(function ($) {
 	/**=(選取標記)===============================================
 	 * <tbody ext-selected-mark="tr => ui-selected">
 	 */
-	$(document).on('init-selected change', '[ext-selected-mark]', function () {
+	$(document).on('change init-selected', '[ext-selected-mark]', function () {
 		var split = $(this).attr('ext-selected-mark').split('=>');
 		var closest = split[0];
 		var style = split[1];
@@ -344,23 +379,40 @@ jQuery(function ($) {
 		var $base = $(this);
 		var split = $base.attr('ext-selectable-checkbox').split('=>');
 		var filter = split[0];
-
-		var $checkbox = $base.find(split[1] || ':checkbox');
+		var checkboxExpr = split[1] || ':checkbox';
+		var cancelSelector = ':input, label, a, .btn, .text-select';
 
 		$base.selectable({
-		    cancel: ':input, label, a, .btn, .text-select',
+			cancel: cancelSelector,
 			filter: filter,
-			selected: function () {
-				$checkbox.prop("checked", function () {
-					return $(this).closest(filter).is('.ui-selected');
-				});
+			stop: function () {
+				$base.find(checkboxExpr).prop("checked", false);
+				$base.find('.ui-selected').find(checkboxExpr).prop("checked", true);
+				$base.find(checkboxExpr).trigger('change', ['selectable']);
 			}
 		});
 
-		$base.on('init-selected change', ':checkbox', function () {
-			$(this).closest(filter).toggleClass('ui-selected', this.checked);
+		$base.on('change init-selected', filter, function (e, flag) {
+			if (flag == 'selectable') { return; }
+			if (!$(e.target).is(checkboxExpr)) { return; }
+			$(this).toggleClass('ui-selected', e.target.checked);
 		});
-		$base.find(':checkbox').trigger('init-selected'); 
+		$base.find(checkboxExpr).filter(':checked').trigger('init-selected');
+		
+		
+		/* 讓文字可以選取 */
+		$base.on('content-change init-text-select', function (e) {
+			$base.find('td').each(function () {
+				var $td = $(this);
+				var $child = $td.children(':first');
+				if ($child.is(cancelSelector)) { return; }
+
+				if ($child.length == 0) { $td.html('<span class="text-select">' + $td.html() + '</span>'); }
+				else { $child.addClass('text-select'); }
+			});
+		});
+
+		setTimeout(function () { $base.triggerHandler('init-text-select'); }, 4000);
 	});
 
 
@@ -398,16 +450,40 @@ jQuery(function ($) {
 	});
 	
 	
+
+	/*水平捲動處理-固定末端欄位*/
+	$('table').has('th[ext-fix-last], td[ext-fix-last]').each(function () {
+		var $table = $(this).addClass('table-scroll-fix');
+		var $base = $table.closest('[ext-table-fix-base]');
+		var $columns = $table.find('th, td').filter('[ext-fix-last]').css('z-index', 10);
+		$columns.filter('td').css('background-color', '#fff');
+
+		var startLeft = 0;
+
+		$(window).on('resize selected.orderable', function () {
+			startLeft = $table.width() - $base.prop("clientWidth");
+			$base.triggerHandler('scroll');
+		}).triggerHandler('resize');
+
+		$base.on('scroll', function () {
+			var delta = Math.min(0, $base.scrollLeft() - startLeft);
+			$columns.css('transform', delta ? 'translateX(' + delta + 'px)' : '');
+		}).triggerHandler('scroll');
+	});
+
+
+
 	/*垂直捲動處理*/
 	$('table').has('thead[ext-table-fix], tr[ext-table-fix]').each(function () {
 		var $table = $(this).addClass('table-scroll-fix');
 		var $rows = $table.find('thead, tr').filter('[ext-table-fix]').css('z-index', 11);
 
+		var offset = 0;
 		var startTop = 0;
 		var $base = $table.closest('[ext-table-fix-base]');
 		if($base.length === 0){ 
 			$base = $win;
-			startTop = $rows.offset().top;
+			startTop = $rows.offset().top - offset;
 		}
 		
 		$base.on('scroll', function() {
@@ -416,7 +492,7 @@ jQuery(function ($) {
 				$rows.css('transform', 'translateY('+delta+'px)'); 
 			}else{
 				$rows.css('transform', '');
-				if(startTop){ startTop = $rows.offset().top; } /* 重新取得定位 */
+				if (startTop) { startTop = $rows.offset().top - offset; } /* 重新取得定位 */
 			}
 		}).triggerHandler('scroll');        
 	});

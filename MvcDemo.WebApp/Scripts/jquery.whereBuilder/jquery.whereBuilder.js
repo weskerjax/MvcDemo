@@ -1,7 +1,32 @@
 (function ($) {
 	"use strict";
 
-	var widgetSelector = '.where-builder';
+	var lang = {
+		'and': '且',
+		'add': '增加',
+		'delete': '刪除',
+		'select': '請選擇',
+		'multiple': '多筆查詢一行一個',
+		'true': '是',
+		'false': '否',
+
+		'': '等於',
+		'!=': '不等於',
+		'..': '之間',
+		'<': '小於',
+		'<=': '小於等於',
+		'>': '大於',
+		'>=': '大於等於',
+		'in': '內容列表',
+		'!in': '非內容列表',
+		'^=': '開頭內容等於',
+		'$=': '結尾內容等於',
+		'*=': '部份內容等於',
+		'^!=': '開頭內容不等於',
+		'$!=': '結尾內容不等於',
+		'*!=': '部份內容不等於'
+	};
+
 	var addBtnTemplate = '<span class="fa fa-plus fa-lg cursor-pointer" title="增加"></span>';
 
 	var $rowTemplate = $(
@@ -16,40 +41,60 @@
 
 
 	var operatorMap = {
-		'': '=     (等於)',
-		'!=': '!=   (不等於)',
-		'..': '~    (之間)',
-		'<': '<     (小於)',
-		'<=': '<=   (小於等於)',
-		'>': '>     (大於)',
-		'>=': '>=   (大於等於)',
-		'in': 'IN   (內容列表)',
-		'!in': '!IN  (非內容列表)',
-		'^=': '^=   (開頭內容等於)',
-		'$=': '$=   (結尾內容等於)',
-		'*=': '*=   (部份內容等於)'
+		'': '=    ',
+		'!=': '!=   ',
+		'..': '~    ',
+		'<': '<    ',
+		'<=': '<=   ',
+		'>': '>    ',
+		'>=': '>=   ',
+		'in': 'IN   ',
+		'!in': '!IN  ',
+		'^=': '^=   ',
+		'$=': '$=   ',
+		'*=': '*=   ',
+		'^!=': '^!=  ',
+		'$!=': '$!=  ',
+		'*!=': '*!=  '
 	};
+
+
+	var prefixOperators = $.map(operatorMap, function (value, key) {
+		return ~$.inArray(key, ['', '..', 'in', '!in']) ? null : key;
+	}).sort(function (a, b) {
+		return b.length - a.length; /* desc length */
+	});
+
+
+
+
+	function htmlEsc(value) {
+		if (!value) { return value; }
+		return value.replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/ /g, '&nbsp;');
+	}
 
 
 	function buildOperator(operatorList) {
 		return $.map(operatorList, function (operator) {
-			var label = operatorMap[operator].replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/ /g, '&nbsp;');
+			var label = htmlEsc(operatorMap[operator]) + '(' + htmlEsc(lang[operator]) + ')';
 			return '<option value="' + operator + '">' + label + '</option>';
 		}).join('');
 	}
 
 	function makeOptions(items) {
-		var options = [];
-
-		if ($.isArray(items)) {
-			$.each(items, function (i, text) { options.push({ value: text, text: text }); });
-		} else {
-			$.each(items, function (value, text) {options.push({ value: value, text: text }); });
-		}
-		return options;
+		var isObject = !$.isArray(items);
+		return $.map(items, function (item, value) {
+			if (isObject) {
+				return { value: value, text: item };
+			} else if ($.isArray(item)) {
+				return { value: item[0], text: item[1] };
+			} else {
+				return { value: item, text: item };
+			}
+		});
 	}
 
-	
+
 	function createInput(setting) {
 		var $input = $('<input type="text" class="form-control input-sm" />');
 		if (setting) { setting($input); }
@@ -59,14 +104,15 @@
 	}
 
 	function createTextarea(setting) {
-		var $input = $('<textarea class="form-control input-sm" placeholder="多筆查詢一行一個"></textarea>');
+		var $input = $('<textarea class="form-control input-sm"></textarea>');
+		$input.attr('placeholder', lang['multiple']);
 		if (setting) { setting($input); }
-				
+
 		$input.bind({
 			'focus': function () {
 				this.select();
 			},
-			'change':function () {
+			'change': function () {
 				var uniqueSet = {};
 				$.each($(this).val().split(/\s/), function (i, value) {
 					uniqueSet[$.trim(value)] = 1;
@@ -75,7 +121,7 @@
 				var values = $.map(uniqueSet, function (i, value) { return value; });
 				$(this).val(values.join('\n'));
 			},
-			'init change keyup paste cut':function (e) {
+			'init change keyup paste cut': function (e) {
 				$(this).height(0).height($(this).prop("scrollHeight") + 10);
 			},
 		});
@@ -109,6 +155,14 @@
 
 
 
+	function addYear(dateStr, num) {
+		if (!dateStr) { return ''; }
+
+		return dateStr.replace(/^[0-9]+\b/, function (year) {
+			return parseInt(year, 10) + num;
+		});
+	}
+
 
 
 	/*######################################################*/
@@ -128,19 +182,19 @@
 		//getOperator: function () {},
 		setControl: function ($cond, mod) { /* input [single, between, multiple] */
 			switch (mod) {
-			case 'between': /* 之間 */
-				var $group = $('<div class="input-group input-group-sm">');
-				$group.append(createInput(this._inputSetting));
-				$group.append('<span class="input-group-addon">~</span>');
-				$group.append(createInput(this._inputSetting));
-				$cond.html($group);
-				break;
-			case 'multiple':
-				$cond.html(createTextarea(this._inputSetting));
-				break;
-			default:
-				$cond.html(createInput(this._inputSetting));
-				break;
+				case 'between': /* 之間 */
+					var $group = $('<div class="input-group input-group-sm">');
+					$group.append(createInput(this._inputSetting));
+					$group.append('<span class="input-group-addon">~</span>');
+					$group.append(createInput(this._inputSetting));
+					$cond.html($group);
+					break;
+				case 'multiple':
+					$cond.html(createTextarea(this._inputSetting));
+					break;
+				default:
+					$cond.html(createInput(this._inputSetting));
+					break;
 			}
 		},
 		revertControl: function ($cond, mod, values) {
@@ -148,16 +202,16 @@
 			var $input = $cond.find(':input');
 
 			switch (mod) {
-			case 'between': /* 之間 */
-				$input.eq(0).val(values[0]);
-				$input.eq(1).val(values[1]);
-				break;
-			case 'multiple':
-				$input.val(values.join('\n')).trigger('init');
-				break;
-			default:
-				$input.val(values.join(' '));
-				break;
+				case 'between': /* 之間 */
+					$input.eq(0).val(values[0]);
+					$input.eq(1).val(values[1]);
+					break;
+				case 'multiple':
+					$input.val(values.join('\n')).trigger('init');
+					break;
+				default:
+					$input.val(values.join(' '));
+					break;
 			}
 		},
 		getValues: function ($cond, mod) {
@@ -173,6 +227,25 @@
 
 
 
+
+	/*=[divider 分隔線]====================================*/
+
+	typeHandles.push(function (type) {
+		type = ('' + type).toLowerCase();
+
+		var supportType = ['divider'];
+		if ($.inArray(type, supportType) === -1) { return null; }
+
+		return {
+			getOperator: function () { return ''; },
+			setControl: baseHandle.setControl,
+			revertControl: baseHandle.revertControl,
+			getValues: baseHandle.getValues
+		};
+	});
+
+
+
 	/*=[string]====================================*/
 
 	typeHandles.push(function (type) {
@@ -184,7 +257,7 @@
 
 		return {
 			getOperator: function () {
-				return buildOperator(['', '!=', '^=', '$=', '*=', 'in', '!in']);
+				return buildOperator(['', '!=', '^=', '$=', '*=', '^!=', '$!=', '*!=', '<', '<=', '>', '>=', 'in', '!in']);
 			},
 			setControl: baseHandle.setControl,
 			revertControl: baseHandle.revertControl,
@@ -203,11 +276,11 @@
 
 		return {
 			_inputSetting: function ($input) {
-				$input.css('text-transform','uppercase');
+				$input.css('text-transform', 'uppercase');
 				$input.change(function () { this.value = this.value.toUpperCase(); });
 			},
 			getOperator: function () {
-				return buildOperator(['', '!=', '^=', '$=', '*=', 'in', '!in']);
+				return buildOperator(['', '!=', '^=', '$=', '*=', '^!=', '$!=', '*!=', '<', '<=', '>', '>=', 'in', '!in']);
 			},
 			setControl: baseHandle.setControl,
 			revertControl: baseHandle.revertControl,
@@ -224,7 +297,7 @@
 		var supportType = ['number', 'decimal', 'float', 'double'];
 		if ($.inArray(type, supportType) === -1) { return null; }
 
- 
+
 		return {
 			_inputSetting: function ($input) {
 				$input.keydown(function (e) {
@@ -255,7 +328,7 @@
 		var supportType = ['int', 'long', 'short', 'int32', 'int64'];
 		if ($.inArray(type, supportType) === -1) { return null; }
 
- 
+
 		return {
 			_inputSetting: function ($input) {
 				$input.keydown(function (e) {
@@ -324,44 +397,23 @@
 		var supportType = ['date'];
 		if ($.inArray(type, supportType) === -1) { return null; }
 
-
-		function inputSetting($input) {
-			$input.datetimepicker({ format: 'yyyy-MM-dd', pickTime: false });
-		}
-
-		function textareaSetting($input) {
-			$input.datetimepicker({ format: 'yyyy-MM-dd', pickTime: false });
-			$input.on('dp.change', function (e) {
-				var orgValue = $.trim($input.val());
-				if (orgValue) { orgValue += '\n'; }
-
-				$input.val(orgValue + moment(e.date).format("YYYY-MM-DD"));
-				$input.data('DateTimePicker').show();
-			}); 
-		}
-
-
 		return {
-		    getOperator: function () {
-		        return buildOperator(['', '!=', '..', '<', '<=', '>', '>=', 'in', '!in']);
-		    },
-		    setControl: function ($cond, mod) { /* input [single, between, multiple] */
-				switch (mod) {
-				case 'between': /* 之間 */
-					var $group = $('<div class="input-group input-group-sm">');
-					$group.append(createInput(inputSetting));
-					$group.append('<span class="input-group-addon">~</span>');
-					$group.append(createInput(inputSetting));
-					$cond.html($group);
-					break;
-				case 'multiple':
-					$cond.html(createTextarea(textareaSetting));
-					break;
-				default:
-					$cond.html(createInput(inputSetting));
-					break;
-				}
+			_inputSetting: function ($input) {
+				$input.datetimepicker({ format: 'yyyy-MM-dd', pickTime: false });
+				if (!$input.is('textarea')) { return; }
+
+				$input.on('dp.change', function (e) {
+					var orgValue = $.trim($input.val());
+					if (orgValue) { orgValue += '\n'; }
+
+					$input.val(orgValue + moment(e.date).format("YYYY-MM-DD"));
+					$input.data('DateTimePicker').show();
+				});
 			},
+			getOperator: function () {
+				return buildOperator(['', '!=', '..', '<', '<=', '>', '>=', 'in', '!in']);
+			},
+			setControl: baseHandle.setControl,
 			revertControl: baseHandle.revertControl,
 			getValues: baseHandle.getValues
 		};
@@ -376,30 +428,149 @@
 		var supportType = ['datetime'];
 		if ($.inArray(type, supportType) === -1) { return null; }
 
-		function inputSetting($input) {
-			$input.datetimepicker({ format: 'yyyy-MM-dd', pickTime: false });
-		}
+		return {
+			_inputSetting: function ($input) {
+				$input.datetimepicker({ format: 'yyyy-MM-dd', pickTime: false });
+			},
+			getOperator: function () {
+				return buildOperator(['', '..', '<', '<=', '>', '>=']);
+			},
+			setControl: baseHandle.setControl,
+			revertControl: function ($cond, mod, values) {
+				values[0] = (values[0] || '').split(' ')[0];
+				values[1] = (values[1] || '').split(' ')[0];
+
+				if (values[0] == values[1]) {
+					mod = 'single';
+					$cond.data('mod', mod);
+					$cond.closest('tr').find('.operator select').val('');
+				}
+
+				this.setControl($cond, mod);
+				var $input = $cond.find(':input');
+
+				$input.eq(0).val(values[0]);
+				$input.eq(1).val(values[1]);
+			},
+			getValues: function ($cond, mod) {
+				var operator = $cond.closest('tr').find('.operator select').val();
+
+				var values = $cond.find(':input').map(function () { return $.trim($(this).val()); }).toArray();
+				switch (operator) {
+					case '':
+						values[0] = values[0] + '..' + values[0] + ' 23:59:59.999';
+						break;
+					case '<=':
+					case '>':
+						values[0] += ' 23:59:59.999';
+						break;
+					case '..': /* 之間 */
+						values[1] += ' 23:59:59.999';
+						break;
+				}
+
+				return values;
+			}
+		};
+	});
+
+
+
+
+
+
+
+	/*=[twdate]====================================*/
+	typeHandles.push(function (type) {
+		type = ('' + type).toLowerCase();
+
+		var supportType = ['twdate', 'cndate'];
+		if ($.inArray(type, supportType) === -1) { return null; }
+
+		return {
+			_inputSetting: function ($input) {
+				$input.datetimepicker({
+					format: 'yyyy-MM-dd',
+					pickTime: false,
+					transferOutYear: function (year) { return year - 1911; },
+					transferInDate: function (dateStr) {
+						return addYear(dateStr, 1911);
+					}
+				});
+				if (!$input.is('textarea')) { return; }
+
+				$input.on('dp.change', function (e) {
+					var orgValue = $.trim($input.val());
+					if (orgValue) { orgValue += '\n'; }
+
+					var dateStr = moment(e.date).format("YYYY-MM-DD");
+					$input.val(orgValue + addYear(dateStr, -1911));
+					$input.data('DateTimePicker').show();
+				});
+			},
+			getOperator: function () {
+				return buildOperator(['', '!=', '..', '<', '<=', '>', '>=', 'in', '!in']);
+			},
+			setControl: baseHandle.setControl,
+			revertControl: function ($cond, mod, values) {
+				var twValues = $.map(values, function (dateStr) {
+					return addYear(dateStr, -1911);
+				});
+
+				baseHandle.revertControl.call(this, $cond, mod, twValues);
+			},
+			getValues: function ($cond, mod) {
+				var values = baseHandle.getValues($cond, mod);
+
+				return $.map(values, function (dateStr) {
+					return addYear(dateStr, 1911);
+				});
+			}
+		};
+	});
+
+
+
+	/*=[twdatetime]====================================*/
+	typeHandles.push(function (type) {
+		type = ('' + type).toLowerCase();
+
+		var supportType = ['twdatetime', 'cndatetime'];
+		if ($.inArray(type, supportType) === -1) { return null; }
 
 
 		return {
+			_inputSetting: function ($input) {
+				$input.datetimepicker({
+					format: 'yyyy-MM-dd',
+					pickTime: false,
+					transferOutYear: function (year) { return year - 1911; },
+					transferInDate: function (dateStr) {
+						return addYear(dateStr, 1911);
+					}
+				});
+			},
 			getOperator: function () {
 				return buildOperator(['..', '<', '<=', '>', '>=']);
 			},
-			setControl: function ($cond, mod) { /* input [single, between, multiple] */
-				if (mod === 'between') {
-					var $group = $('<div class="input-group input-group-sm">');
-					$group.append(createInput(inputSetting));
-					$group.append('<span class="input-group-addon">~</span>');
-					$group.append(createInput(inputSetting));
-					$cond.html($group);
-				} else {
-					$cond.html(createInput(inputSetting));
-				}
+			setControl: baseHandle.setControl,
+			revertControl: function ($cond, mod, values) {
+				var twValues = $.map(values, function (dateStr) {
+					return addYear(dateStr, -1911);
+				});
+
+				baseHandle.revertControl.call(this, $cond, mod, twValues);
 			},
-			revertControl: baseHandle.revertControl,
-			getValues: baseHandle.getValues
+			getValues: function ($cond, mod) {
+				var values = baseHandle.getValues($cond, mod);
+
+				return $.map(values, function (dateStr) {
+					return addYear(dateStr, 1911);
+				});
+			}
 		};
 	});
+
 
 
 
@@ -410,7 +581,10 @@
 		var supportType = ['bool'];
 		if ($.inArray(type, supportType) === -1) { return null; }
 
-		return getTypeHandle('{"True":"是","False":"否"}');
+		return getTypeHandle(JSON.stringify({
+			'True': lang['true'],
+			'False': lang['false']
+		}));
 	});
 
 
@@ -423,9 +597,15 @@
 		} else if (window[type] !== undefined) {
 			items = window[type];
 		} else {
-			try { items = $.parseJSON(type); }
-			catch (e) { console.error(type + ' ' + e); return null; }
+			var jsonStr = type;
+			if (jsonStr[0] == '{') {
+				jsonStr = jsonStr.replace(/(["']?\w+["']?):(["'](?:\.|(\\")|(\\')|[^"'])*["'])/ig, '[$1,$2]');
+				jsonStr = jsonStr.replace(/^{/, '[').replace(/}$/, ']');
+			}
+			try { items = $.parseJSON(jsonStr); }
+			catch (e) { console.error(jsonStr + ' ' + e); return null; }
 		}
+
 
 		var options = makeOptions(items);
 
@@ -463,9 +643,9 @@
 				revertControl: function ($cond, mod, values) {
 					this.setControl($cond, mod);
 					var $input = $cond.find(':input');
-				
+
 					if (mod === 'multiple') {
-						$input.prop('checked', function () { return ~$.inArray(this.value, values); }); 
+						$input.prop('checked', function () { return ~$.inArray(this.value, values); });
 					} else {
 						$input.val(values[0]);
 					}
@@ -477,7 +657,7 @@
 					return $input.map(function () { return $.trim($(this).val()); }).toArray();
 				}
 			};
-		}	 
+		}
 	});
 
 
@@ -503,7 +683,7 @@
 		self.$table = $('<table class="table form-inline where-builder-picker"></table>').appendTo(self.$widget);
 		self.columnTotal = 0;
 		self.columns = $.extend({
-			'': { 'type': '', 'label': '請選擇' }
+			'': { 'type': '', 'label': lang['select'] }
 		}, columns);
 
 		$.each(columns, function (i, meta) {
@@ -512,7 +692,11 @@
 		});
 
 		self.columnOption = $.map(self.columns, function (meta, column) {
-			return '<option value="' + column + '">' + meta.label + '</option>';
+			if (meta.type == 'divider') {
+				return '<option disabled>────────</option>';
+			} else {
+				return '<option value="' + column + '">' + meta.label + '</option>';
+			}
 		}).join('');
 
 		self._initField();
@@ -520,10 +704,6 @@
 
 		self._initEvent();
 	}
-
-	WhereBuilder.buildOperator = buildOperator;
-	WhereBuilder.baseHandle = baseHandle;
-	WhereBuilder.typeHandles = typeHandles;
 
 
 	WhereBuilder.prototype = {
@@ -586,9 +766,9 @@
 				var column = $(this).val();
 				$tr.find('.field').attr('name', column);
 
-				var handle = self.columns[column].handle;
+				var handle = self.columns[column].handle || null;
 				$tr.data('handle', handle);
-				if (!handle) { return; }
+				if (!handle) { return $operator.val('').trigger('change'); }
 
 				$tr.find('.condition').data('mod', '');
 				$operator.html(handle.getOperator());
@@ -599,30 +779,30 @@
 			/* operator 對 condition 連動 */
 			self.$table.on('change', '.operator select', function () {
 				var $tr = $(this).closest('tr');
-				var handle = $tr.data('handle');
-				if (!handle) { return; }
-
 				var $cond = $tr.find('.condition');
+				var handle = $tr.data('handle');
+				if (!handle) { return $cond.html(''); }
+
 				var mod = $cond.data('mod');
 				var operator = $(this).val();
 
 				/* input [single, between, multiple] */
 				switch (operator) {
-				case '..': /* 之間 */
-					if (mod === 'between') { return; }
-					mod = 'between';
-					break;
+					case '..': /* 之間 */
+						if (mod === 'between') { return; }
+						mod = 'between';
+						break;
 
-				case 'in': /* 內容列表 */
-				case '!in': /* 非內容列表 */
-					if (mod === 'multiple') { return self.computeField($tr); }
-					mod = 'multiple';
-					break;
+					case 'in': /* 內容列表 */
+					case '!in': /* 非內容列表 */
+						if (mod === 'multiple') { return self.computeField($tr); }
+						mod = 'multiple';
+						break;
 
-				default:
-					if (mod === 'single') { return self.computeField($tr); }
-					mod = 'single';
-					break;
+					default:
+						if (mod === 'single') { return self.computeField($tr); }
+						mod = 'single';
+						break;
 				}
 
 				handle.setControl($cond, mod);
@@ -648,6 +828,7 @@
 				$firstAddBtn.html('');
 			} else {
 				$firstAddBtn.html(addBtnTemplate);
+				$firstAddBtn.find('.fa').attr('title', lang['add']);
 			}
 		},
 
@@ -656,80 +837,74 @@
 		addRow: function () {
 			var self = this;
 			var $tr = $rowTemplate.clone();
+
+			$tr.find('.add_btn').html(lang['and']);
+			$tr.find('.delete_btn .fa').attr('title', lang['delete']);
 			$tr.find('.column select').html(self.columnOption);
 			$tr.appendTo(self.$table);
 			self._checkAddBtn();
 			return $tr;
 		},
-
-
+ 
 		/* 還原 Field */
 		revertField: function ($tr, column, value) {
 			var self = this;
 			var meta = self.columns[column];
 			if (!meta || !meta.handle) { return; }
-
+						
 			var handle = meta.handle;
 			$tr.data('handle', handle);
 			$tr.find('.column select').val(column);
 			$tr.find('.field').attr('name', column).val(value);
 
-			var $operator = $tr.find('.operator select');
-			$operator.html(handle.getOperator());
-
-			var operator = value.substr(0, 2);
 			var mod = 'single';
 			var values = [value];
+			var between = value.split('..');
+			var inSplit = value.split('|');
 
-			do {
-				if (~$.inArray(operator, ['!=', '<=', '>=', '^=', '*=', '$='])) {
-					$operator.val(operator);
-					values = [value.substr(2)];
-					break;
+
+			/* 字首運算符 */
+			var operator = $(prefixOperators)
+				.filter(function () { return value.indexOf(this) === 0; })
+				.get(0);
+
+			if (operator) {				
+				values = [value.substr(operator.length)];
+			}
+			else if (between.length === 2) {
+				operator = '..';
+				mod = 'between';
+				values = between;
+			}			
+			else if (inSplit.length > 1) {
+				if (inSplit[0].charAt(0) === '!') {
+					inSplit[0] = inSplit[0].substr(1);
+					operator = '!in';
+				} else {
+					operator = 'in';
 				}
-
-				operator = value.substr(0, 1);
-				if (~$.inArray(operator, ['=', '<', '>'])) {
-					$operator.val(operator);
-					values = [value.substr(1)];
-					break;
-				}
-
-				var split = value.split('..');
-				if (split.length === 2) {
-					$operator.val('..');
-					mod = 'between';
-					values = split;
-					break;
-				}
-
-				split = value.split('|');
-				if (split.length > 1) {
-					if (split[0].charAt(0) === '!') {
-						$operator.val('!in');
-						split[0] = split[0].substr(1);
-					} else {
-						$operator.val('in');
-					}
-					mod = 'multiple';
-					values = split;
-					break;
-				}
-			} while (false);
-
+				mod = 'multiple';
+				values = inSplit;
+			}
+				
+			var $operator = $tr.find('.operator select');
+			$operator.html(handle.getOperator());
+			$operator.val(operator);
 
 			var $cond = $tr.find('.condition');
 			$cond.data('mod', mod);
 			handle.revertControl($cond, mod, values);
 		},
 
+
 		/* 計算 Field */
 		computeField: function ($tr) {
 			var $cond = $tr.find('.condition');
 			var handle = $tr.data('handle');
-			var operator = $tr.find('.operator select').val();
+			if (!handle) { return $tr.find('.field').val(''); }
 
-			var values = handle.getValues($cond, $cond.data('mod'))
+			var operator = $tr.find('.operator select').val();
+			var values = handle.getValues($cond, $cond.data('mod'));
 			var value = operator + values[0];
 			switch (operator) {
 				case '..': /* 之間 */
@@ -738,7 +913,7 @@
 
 				case 'in': /* 內容列表 */
 				case '!in': /* 非內容列表 */
-					value = values.join('|')+'|';
+					value = values.join('|') + '|';
 					if ('!in' === operator) { value = '!' + value; }
 					break;
 			}
@@ -771,11 +946,16 @@
 		});
 	};
 
+	$.fn.whereBuilder.lang = lang;
+	$.fn.whereBuilder.buildOperator = buildOperator;
+	$.fn.whereBuilder.baseHandle = baseHandle;
+	$.fn.whereBuilder.typeHandles = typeHandles;
+
 
 
 	/* unobtrusive API */
 	jQuery(function ($) {
-		$(widgetSelector).each(function () {
+		$('.where-builder').each(function () {
 			var columns = {};
 			$(this).find('option').each(function () {
 				var $this = $(this);

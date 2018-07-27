@@ -2,7 +2,7 @@
 /**=[對話匡處理]==========================================================*/
 var Dialog = {
 	_hasParent: function () { return window.parent !== window && window.parent['Dialog']; },
-
+	_closeId: 0,
 	observes: {},
 	on: function (event, callback) {
 		if (!this.observes[event]) {
@@ -12,12 +12,12 @@ var Dialog = {
 		return this;
 	},
 
-	exec: function (event, data, params) {
+	exec: function (event, data, params, path) {
 		var callbacks = this.observes[event];
 		if (!callbacks) { return this; }
 
 		var i = callbacks.length;
-		while (i--) { callbacks[i](data, params); }
+		while (i--) { callbacks[i](data, params, path); }
 
 		return this;
 	},
@@ -32,7 +32,7 @@ var Dialog = {
 				params[decodeURIComponent(single[0])] = decodeURIComponent((single[1] || ''));
 			}
 
-			window.parent.Dialog.exec(event, data, params);
+			window.parent.Dialog.exec(event, data, params, location.pathname);
 		}
 		return this;
 	},
@@ -52,18 +52,25 @@ var Dialog = {
 	},
 
 	close: function (delay) {
-		delay = delay || 0;
+		if (Dialog._hasParent()) {
+			window.parent.Dialog.close(delay);
+			return this;
+		}
 
-		setTimeout(function () {
-			if (Dialog._hasParent()) {
-				window.parent.Dialog.close();
-			}
-			else {
-				$.iframeDialog.close();
-			}
-		}, delay);
+		this._closeId = setTimeout(function () { $.iframeDialog.close(); }, delay || 0);
+		return this;
+	},
+
+	stopClose: function () {
+		if (Dialog._hasParent()) {
+			window.parent.Dialog.stopClose();
+			return this;
+		}
+
+		clearTimeout(this._closeId);
 		return this;
 	}
+
 };
 
 /*訊息*/

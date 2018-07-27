@@ -307,7 +307,6 @@
     <Content Include="Scripts\jquery.whereBuilder\jquery.whereBuilder.js" />
     <Content Include="Scripts\jquery.whereBuilder\jquery.whereBuilder.min.css" />
     <Content Include="Scripts\jquery.whereBuilder\jquery.whereBuilder.Test.htm" />
-    <Content Include="Scripts\main\angular-jwModule.js" />
     <Content Include="Scripts\main\array.js" />
     <Content Include="Scripts\main\Dialog.js" />
     <Content Include="Scripts\main\ext-orderable-selector.js" />
@@ -338,7 +337,9 @@
     <None Include="Scripts\_references.js" />
     <Content Include="WCF\Default.aspx" />
     <Content Include="WCF\Test.aspx" />
-    <Content Include="Web.config" />
+    <Content Include="Web.config">
+      <SubType>Designer</SubType>
+    </Content>
     <Content Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </Content>
@@ -348,15 +349,14 @@
     <Content Include="Views\Web.config" />
     <Content Include="Views\_ViewStart.cshtml" />
     <Content Include="WCF\Web.config" />
-    <None Include="Web.Jwnet3.config">
-      <DependentUpon>Web.config</DependentUpon>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Views\Sample\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
+    <None Include="packages.config">
+      <SubType>Designer</SubType>
+    </None>
     <Content Include="Views\Home\Breadcrumb.cshtml" />
     <Content Include="Views\Home\ChangePassword.cshtml" />
     <Content Include="Views\Home\Index.cshtml" />
